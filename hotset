@@ -1,0 +1,41 @@
+#!/usr/bin/env bash
+# hotset — entry point.
+#
+#   hotset serve [--ctx N] [--kv-dtype f16|q8_0]   pick a placement, then serve
+#   hotset fit   [--ctx N] [--json]                only print the placement
+#   hotset bench [CONFIGS=... REPS=N]              reproduce the tok/s table
+#   hotset test  [--e2e] [--skip-kernel]           unit + kernel A/B (+ model)
+#   hotset queue [--list] [--interval-s N]         run benchmarks when the GPU frees
+#
+# Environment: MODEL (default models/gpt-oss-120b-MXFP4.gguf), LLAMA_SERVER
+# (default build/bin/llama-server), CTX, KV.
+set -euo pipefail
+
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+MODEL="${MODEL:-$ROOT/models/gpt-oss-120b-MXFP4.gguf}"
+PYTHON="${PYTHON:-python3}"
+
+usage() { sed -n '2,11p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'; }
+
+cmd="${1:-}"
+[ $# -gt 0 ] && shift
+case "$cmd" in
+  serve)
+    exec "$ROOT/scripts/serve.sh" "$@" ;;
+  fit)
+    exec "$PYTHON" -I "$ROOT/scripts/moe_fit.py" --model "$MODEL" "$@" ;;
+  bench)
+    exec "$ROOT/scripts/bench.sh" "$@" ;;
+  test)
+    cd "$ROOT"
+    exec "$PYTHON" -I tests/run_tests.py "$@" ;;
+  queue)
+    cd "$ROOT"
+    exec "$PYTHON" -I scripts/bench_queue.py "$@" ;;
+  ""|-h|--help|help)
+    usage ;;
+  *)
+    echo "hotset: unknown command '$cmd'" >&2
+    usage >&2
+    exit 2 ;;
+esac
