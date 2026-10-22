@@ -75,7 +75,7 @@ complement.
 | `scripts/bench_queue.py` | the benchmarks that are waiting on VRAM, run sequentially |
 | `scripts/membw.c` | the host streaming-read probe behind the 16.5 GB/s ceiling |
 | `tests/run_tests.py` | placement unit tests + an A/B kernel-equivalence suite |
-| `docs/PROBE-REPORT.md` | every measurement, A/B experiment and failure mode |
+| [`docs/PROBE-REPORT.md`](docs/PROBE-REPORT.md) | every measurement, A/B experiment and failure mode |
 | `docs/PERF-LEVERS.md` | the byte model, calibrated against measured tok/s |
 | `docs/SPLIT-MOE.md` | the design for the expert cache (v0.2, in progress) |
 
@@ -188,6 +188,14 @@ most.
 - **Upstream tree.** This repository carries a llama.cpp checkout with local
   kernel changes; it is not a drop-in replacement for upstream. See
   [`NOTICE.md`](NOTICE.md).
+
+## Contributing
+
+Measurements on hardware this repository has not seen are the most useful thing
+you can bring — see [`CONTRIBUTING.md`](CONTRIBUTING.md) and
+[issue #2](https://github.com/KaiDong-coder/hotset/issues/2). Questions and
+half-formed results belong in
+[Discussions](https://github.com/KaiDong-coder/hotset/discussions).
 
 ## Name
 
