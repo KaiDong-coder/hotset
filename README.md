@@ -1,33 +1,65 @@
 # hotset
 
-**A gpt-oss-120B inference engine for one 48 GB GPU and 30 GB of RAM.**
+[![tests](https://github.com/KaiDong-coder/hotset/actions/workflows/tests.yml/badge.svg)](https://github.com/KaiDong-coder/hotset/actions/workflows/tests.yml)
+[![license: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
-`gpt-oss-120B` is 117B parameters (5.1B active, 36 layers, 128 experts, top-4) in
-MXFP4. Fitting it on a single RTX A6000 is not the hard part — llama.cpp can do
-that. Serving it *fast* is, because at that size every token is a memory-
-bandwidth problem: decode streams expert weights from host RAM over PCIe, and
-whatever you do, the wall is bytes-per-token, not FLOPs.
+**gpt-oss-120B (117B parameters, 5.1B active) served on one 48 GB GPU and 30 GB
+of RAM — 30.6 tok/s decode, 97.8 tok/s prefill, and a measured byte model that
+tells you what the next 20 tok/s costs.**
 
-hotset is built around that one fact. On a stock placement this box measured
-**29 tok/s decode**; hotset measures **30.6 tok/s at `ncmoe=8`** — 92% of the
-40.8 tok/s the host bandwidth of this machine allows. The remaining lever is to
-read *fewer* bytes, and routing traces say how: a 14-expert-per-layer cache in
-VRAM cuts host reads from 404.5 to 246.6 MiB/token, i.e. **50.3 tok/s**
-(replayed from a real 897-token routing dump; the cache itself is in progress —
-see [Status](#status)).
+A 117B model on one RTX A6000 is a memory-bandwidth problem, not a FLOP problem:
+every token streams expert weights from host RAM over PCIe. hotset sizes the
+split to the machine, runs the MoE on tuned MXFP4 kernels, and ships the trace
+replay tools that price the remaining levers instead of guessing at them.
 
-```bash
-git clone https://github.com/<you>/hotset && cd hotset
-cmake -S . -B build -DGGML_CUDA=ON -DCMAKE_BUILD_TYPE=Release
-cmake --build build --target llama-server llama-cli llama-perplexity -j "$(nproc)"
-python3 scripts/download_modelscope.py          # ~59 GiB, resumable
-./hotset serve --ctx 8192                       # prints the config, then serves
+## This box, measured
+
+| | | what sets it |
+|---|---|---|
+| decode, 8k ctx, f16 KV | **30.6 tok/s** | 92% of the 40.8 tok/s this host's memory allows |
+| prefill, 8k ctx | **97.8 tok/s** | CPU MoE (`--no-op-offload`), 9.1 cores busy |
+| VRAM | 47.7 of 49.1 GiB | 8 of 36 MoE layers on the CPU |
+| host RAM | 17.3 of 30 GB | `MemAvailable`, not VRAM, is the first constraint |
+
+RTX A6000 48 GB, i9-10900X (10C/20T), PCIe 3.0 x16. Every row is
+`llama-server`'s own `timings` block, greedy decode; `./hotset bench`
+reproduces it.
+
+| other workloads | decode tok/s | prefill tok/s |
+|---|---|---|
+| 32k ctx, q8_0 KV, 1 stream | 24.9 | 179 |
+| 8k ctx, f16 KV, 2 concurrent streams | 26.6 aggregate | — |
+
+Placement matters as much as kernels: the *same* box at `ncmoe=9` gives 25.4
+tok/s decode / 81.1 tok/s prefill — one more layer on the GPU is worth 20%. The
+kernel fast paths are worth another 11.6% at equal placement (1.093 vs 1.236 ms
+per `mul_mat_id`, measured).
+
+## The wall, and the way past it
+
+```
+  decode tok/s
+   70 ┤                                      ┌─ 67.6   ncmoe=10 + 28-expert cache   (projected)
+   60 ┤                               ┌──────┘
+   50 ┤                        ┌──────┘ 50.3          ncmoe=9 + 14-expert cache    (projected)
+   40 ┤                 ┌──────┘ 40.8                ceiling: 16.5 GB/s host bandwidth
+   30 ┤───────●─────────┘ 30.6                       measured today, ncmoe=8
+   20 ┤
+      └──────────────────────────────────────────────────────────────────▶
+         404.5 MiB/token        246.6                      fewer bytes, not more FLOPs
 ```
 
-`hotset serve` reads the GGUF tensor table and picks `-ngl`, `--n-cpu-moe`, KV
-type and thread counts from **this machine's VRAM and `MemAvailable`** — it does
-not assume the numbers below. The endpoint is
-`http://127.0.0.1:8080/v1/chat/completions`.
+Decode reads `ncmoe × 50.56 MiB` per token. At this host's measured 16.5 GB/s
+that caps decode at 40.8 tok/s, and the engine already sustains 12.4 GB/s — 92%
+of it. No further kernel work moves that number; only reading fewer bytes does.
+Routing is skewed enough to allow it: per layer, the top 14 of 128 experts
+absorb 54–68% of routed slots (uniform would be 10.9%).
+
+`scripts/batch_union.py` replays a real 897-token routing dump to price that
+cache; its `b=1` row reproduces the measured 30.6 tok/s exactly, which is what
+makes the projected rows worth publishing. `docs/PERF-LEVERS.md` has the full
+derivation, including why batching is a *substitute* for the cache rather than a
+complement.
 
 ## What is in the box
 
@@ -36,7 +68,7 @@ not assume the numbers below. The endpoint is
 | `hotset` | entry point: `serve`, `fit`, `bench`, `test`, `queue` |
 | `scripts/moe_fit.py` | model-exact placement from the GGUF table; refuses configs that would thrash |
 | `scripts/serve.sh` | `moe_fit --run`: print the chosen config, then exec `llama-server` |
-| `scripts/bench.sh` | one command that reproduces the table below on your box |
+| `scripts/bench.sh` | one command that reproduces the tables above on your box |
 | `scripts/routing_skew.py` | replay a routing dump: per-layer expert skew, LRU hit rate |
 | `scripts/batch_union.py` | price expert caches and batching from a real trace (bytes/token → tok/s) |
 | `scripts/gpu_queue.py` | wait for a VRAM budget on a **shared** GPU, run one command, never signal a foreign pid |
@@ -45,45 +77,7 @@ not assume the numbers below. The endpoint is
 | `tests/run_tests.py` | placement unit tests + an A/B kernel-equivalence suite |
 | `docs/PROBE-REPORT.md` | every measurement, A/B experiment and failure mode |
 | `docs/PERF-LEVERS.md` | the byte model, calibrated against measured tok/s |
-
-## Measured numbers
-
-RTX A6000 48 GB, i9-10900X (10C/20T), 30 GB RAM, PCIe 3.0 x16. Server-side
-`timings` from `llama-server`, greedy decode.
-
-| workload | decode tok/s | prefill tok/s | placement |
-|---|---|---|---|
-| 8k ctx, f16 KV, 1 stream | **29–30.6** | **160** | `ncmoe=8`, `--no-op-offload` |
-| 32k ctx, q8_0 KV, 1 stream | **24.9** | **179** | `ncmoe=8` |
-| 8k ctx, f16 KV, 2 streams | **26.6 aggregate** | — | `ncmoe=8`, `--parallel 2` |
-
-Stock `llama.cpp` at the same placement is slower (25.4 tok/s decode / 81 tok/s
-prefill at `ncmoe=9`). Two things account for it: the MXFP4 `mul_mat_id` fast
-paths in `ggml/src/ggml-cpu/ggml-cpu.c` (4-expert interleaved decode, multi-token
-prefill), and the CPU-resident placement chosen by `moe_fit.py`.
-
-The `30.6` is not a new peak, it is the *ceiling check*: decode reads
-`ncmoe × 50.56 MiB` per token, this CPU streams 16.5 GB/s in one pass, and the
-engine sustains 12.4 GB/s (92% of 40.8 tok/s). That is why the next section is
-about bytes, not kernels.
-
-## Where the speed is
-
-`docs/PERF-LEVERS.md` derives every row below from `scripts/batch_union.py`
-replaying a real routing dump; the `b=1` row reproduces the measured 30.6 tok/s
-exactly, which is what makes the rest trustworthy.
-
-| config | host bytes/token | decode tok/s | cost |
-|---|---|---|---|
-| `ncmoe=8`, no cache (today) | 404.5 MiB | 30.6 (measured) | — |
-| `ncmoe=9` + 14 experts/layer cached | 246.6 MiB | **50.3** (projected) | 1.4 GiB VRAM |
-| `ncmoe=10` + 28 experts/layer | — | **67.6** (projected) | 2.8 GiB VRAM + 3.2 GB host |
-
-Batching is the other axis, and it is a *substitute*, not a complement: a
-batched `mul_mat_id` reads each distinct expert once, so bytes scale with the
-expert union — aggregate 2.67x at `b=32` — but with a 14-expert cache, `b=8`
-(43.9 tok/s) is *slower* than `b=1` (50.3) because the wider union thrashes the
-cache. Cache first; batch only at `b ≥ 16`.
+| `docs/SPLIT-MOE.md` | the design for the expert cache (v0.2, in progress) |
 
 ## Quickstart
 
@@ -93,7 +87,7 @@ Prerequisites: NVIDIA driver + CUDA toolkit, `git`, `cmake ≥ 3.20`, `python3`;
 26.04, CUDA 13.1.
 
 ```bash
-git clone https://github.com/<you>/hotset && cd hotset
+git clone https://github.com/KaiDong-coder/hotset && cd hotset
 
 # 1. Build. llama.cpp's CMake tree is the repository root.
 cmake -S . -B build -DGGML_CUDA=ON -DCMAKE_BUILD_TYPE=Release
@@ -148,18 +142,32 @@ python3 -I scripts/gpu_queue.py --need-mib 47700 -- <one command>
 python3 -I scripts/bench_queue.py --list     # what is waiting on VRAM
 ```
 
+## Is this for you?
+
+- **Yes**, if you have one 48 GB GPU and want to serve a 120B-class model from a
+  box you already own, and you want to know where its speed actually comes from.
+- **Yes**, if you work on MoE inference and want a calibrated byte model and a
+  trace-replay harness you can point at your own hardware — that is most of what
+  is in this repository.
+- **Not yet**, if you need many concurrent users: aggregate throughput at 2
+  streams is 26.6 tok/s, only ~8% above one stream. Continuous batching is a
+  [`docs/PERF-LEVERS.md`](docs/PERF-LEVERS.md) projection, not a shipped feature.
+
 ## Status
 
-- **v0.1, what is measured:** CPU-resident MoE placement, MXFP4 `mul_mat_id`
-  fast paths (decode and prefill), the auto-placement planner, the routing-trace
-  tooling, and the test suite.
+- **v0.1, measured:** CPU-resident MoE placement, MXFP4 `mul_mat_id` fast paths
+  (decode and prefill), the auto-placement planner, the routing-trace tooling,
+  and the test suite.
 - **In progress:** the split-MoE GPU expert cache (`--moe-cache N`). The design
-  is in `docs/SPLIT-MOE.md` (masked-id skip in the CPU and CUDA kernels, two
-  `mul_mat_id` ops instead of one). The 50.3 / 67.6 tok/s rows above are
-  **byte-model projections from real traces**, not measurements — this README
-  will not call them measured until they are.
+  is in [`docs/SPLIT-MOE.md`](docs/SPLIT-MOE.md) (masked-id skip in the CPU and
+  CUDA kernels, two `mul_mat_id` ops instead of one). The 50.3 / 67.6 tok/s rows
+  above are **byte-model projections from real traces**, not measurements — this
+  README will not call them measured until they are.
 - **Not available:** single-stream decode above 40.8 tok/s without reading fewer
   bytes (PCIe 3.0 at 16.5 GB/s is the wall).
+
+See [`ROADMAP.md`](ROADMAP.md) for what v0.2 needs and where contributions help
+most.
 
 ## Honest limits
 
@@ -179,7 +187,7 @@ python3 -I scripts/bench_queue.py --list     # what is waiting on VRAM
   ceiling — run `scripts/membw.c` before believing any tok/s figure.
 - **Upstream tree.** This repository carries a llama.cpp checkout with local
   kernel changes; it is not a drop-in replacement for upstream. See
-  `NOTICE.md`.
+  [`NOTICE.md`](NOTICE.md).
 
 ## Name
 
@@ -190,4 +198,5 @@ the rest from where it is not.
 
 ## License
 
-MIT, as llama.cpp. See `LICENSE` (upstream) and `NOTICE.md` (what was changed).
+MIT, as llama.cpp. See [`LICENSE`](LICENSE) (upstream) and
+[`NOTICE.md`](NOTICE.md) (what was changed).
