@@ -155,6 +155,9 @@ AGENTS.local.md
 .pi/SYSTEM.md
 
 # hotset
-/results/
 __pycache__/
 *.pyc
+# measured JSON evidence is committed; new runs and derived dumps are not
+/results/kernel_tests/
+/results/bench-*/
+/results/gpu-queue/

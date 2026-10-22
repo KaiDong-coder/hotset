@@ -1,0 +1,98 @@
+{
+ "name": "ctl",
+ "model": "models/gpt-oss-120b-MXFP4.gguf",
+ "bin": "build/bin/llama-server",
+ "ncmoe": 8,
+ "ctx": 8192,
+ "kv": "f16",
+ "prefault": "none",
+ "hidden_warmup_tokens": 0,
+ "cpu_expert_tensors": 48,
+ "cpu_expert_ranges": 16,
+ "cpu_expert_bytes": 13571915776,
+ "drop_cache_s": 0.5385069847106934,
+ "load_s": 188.22332501411438,
+ "prefault_record": {
+  "mode": "none",
+  "bytes": 13571915776,
+  "seconds": 0.0
+ },
+ "load_total_s": 188.22332501411438,
+ "mem_after_prefault": {
+  "MemAvailable": 22254,
+  "Cached": 18212,
+  "SwapTotal": 8191,
+  "SwapFree": 0
+ },
+ "runs": [
+  {
+   "i": 0,
+   "wall_s": 13.44,
+   "predicted_n": 48,
+   "decode_tok_s": 6.55,
+   "prefill_tok_s": 3.8,
+   "read_mib": 7016.5,
+   "rss_mib": 6971,
+   "swap_mib": 1
+  },
+  {
+   "i": 1,
+   "wall_s": 6.8,
+   "predicted_n": 48,
+   "decode_tok_s": 16.51,
+   "prefill_tok_s": 5.9,
+   "read_mib": 2202.5,
+   "rss_mib": 7219,
+   "swap_mib": 1
+  },
+  {
+   "i": 2,
+   "wall_s": 2.72,
+   "predicted_n": 48,
+   "decode_tok_s": 26.84,
+   "prefill_tok_s": 24.9,
+   "read_mib": 71.6,
+   "rss_mib": 7223,
+   "swap_mib": 1
+  },
+  {
+   "i": 3,
+   "wall_s": 2.71,
+   "predicted_n": 48,
+   "decode_tok_s": 27.24,
+   "prefill_tok_s": 24.2,
+   "read_mib": 29.8,
+   "rss_mib": 7214,
+   "swap_mib": 1
+  }
+ ],
+ "cmd": [
+  "build/bin/llama-server",
+  "-m",
+  "models/gpt-oss-120b-MXFP4.gguf",
+  "-ngl",
+  "99",
+  "-c",
+  "8192",
+  "-ctk",
+  "f16",
+  "-ctv",
+  "f16",
+  "-fa",
+  "auto",
+  "--host",
+  "127.0.0.1",
+  "--port",
+  "36477",
+  "--no-webui",
+  "--n-cpu-moe",
+  "8",
+  "--parallel",
+  "1",
+  "--no-op-offload",
+  "-t",
+  "10",
+  "-tb",
+  "20"
+ ]
+}

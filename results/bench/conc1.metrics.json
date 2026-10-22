@@ -1,0 +1,119 @@
+{
+ "cmd": [
+  "build/bin/llama-server",
+  "-m",
+  "models/gpt-oss-120b-MXFP4.gguf",
+  "-ngl",
+  "99",
+  "-c",
+  "8192",
+  "-ctk",
+  "f16",
+  "-ctv",
+  "f16",
+  "-fa",
+  "auto",
+  "--host",
+  "127.0.0.1",
+  "--port",
+  "36703",
+  "--no-webui",
+  "--n-cpu-moe",
+  "8",
+  "--parallel",
+  "4",
+  "--no-op-offload",
+  "-t",
+  "10",
+  "-tb",
+  "20"
+ ],
+ "ctx": 8192,
+ "ncmoe": 8,
+ "moe_cache_mib": 0,
+ "kv": "f16",
+ "load_s": 175.50329852104187,
+ "base_vram_mib": 31,
+ "max_vram_mib": 47755,
+ "peak_rss_kib": 17788728,
+ "decode_tok_s": 24.692392262176387,
+ "decode_tok_s_all": [
+  24.95204652328878,
+  25.147481998594134,
+  23.97764826464625
+ ],
+ "prefill_tok_s": 64.35757862584664,
+ "cpu_cores_avg": 11.81000063937897,
+ "disk_mib_per_request": 156.7109375,
+ "runs": [
+  {
+   "i": 0,
+   "warmup": true,
+   "concurrent": 1,
+   "wall_s": 17.60106086730957,
+   "agg_tok_s": 3.6361444621140495,
+   "cpu_s": 56.65,
+   "cpu_cores": 3.218555996543139,
+   "disk_mib": 9560.63671875,
+   "prompt_n": 152,
+   "prompt_per_s": 10.847804447200168,
+   "predicted_n": 64,
+   "predicted_per_s": 17.596605363445317,
+   "per_req_predicted_per_s": [
+    17.596605363445317
+   ]
+  },
+  {
+   "i": 1,
+   "warmup": false,
+   "concurrent": 1,
+   "wall_s": 4.873610734939575,
+   "agg_tok_s": 13.131947437076855,
+   "cpu_s": 58.000000000000014,
+   "cpu_cores": 11.900827364850903,
+   "disk_mib": 146.1953125,
+   "prompt_n": 152,
+   "prompt_per_s": 64.83145315010486,
+   "predicted_n": 64,
+   "predicted_per_s": 24.95204652328878,
+   "per_req_predicted_per_s": [
+    24.95204652328878
+   ]
+  },
+  {
+   "i": 2,
+   "warmup": false,
+   "concurrent": 1,
+   "wall_s": 4.833402872085571,
+   "agg_tok_s": 13.241188805017728,
+   "cpu_s": 57.91,
+   "cpu_cores": 11.98120693279026,
+   "disk_mib": 106.21875,
+   "prompt_n": 152,
+   "prompt_per_s": 65.3938386957715,
+   "predicted_n": 64,
+   "predicted_per_s": 25.147481998594134,
+   "per_req_predicted_per_s": [
+    25.147481998594134
+   ]
+  },
+  {
+   "i": 3,
+   "warmup": false,
+   "concurrent": 1,
+   "wall_s": 5.051105260848999,
+   "agg_tok_s": 12.670494217584919,
+   "cpu_s": 58.329999999999984,
+   "cpu_cores": 11.54796762049575,
+   "disk_mib": 217.71875,
+   "prompt_n": 152,
+   "prompt_per_s": 62.84744403166354,
+   "predicted_n": 64,
+   "predicted_per_s": 23.97764826464625,
+   "per_req_predicted_per_s": [
+    23.97764826464625
+   ]
+  }
+ ],
+ "server_log": "results/conc1.log"
+}

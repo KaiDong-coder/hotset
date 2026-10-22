@@ -1,0 +1,95 @@
+{
+ "cmd": [
+  "build/bin/llama-server",
+  "-m",
+  "models/gpt-oss-120b-MXFP4.gguf",
+  "-ngl",
+  "99",
+  "-c",
+  "32768",
+  "-ctk",
+  "q8_0",
+  "-ctv",
+  "q8_0",
+  "-fa",
+  "auto",
+  "--host",
+  "127.0.0.1",
+  "--port",
+  "33461",
+  "--no-webui",
+  "--n-cpu-moe",
+  "9",
+  "--no-op-offload"
+ ],
+ "ctx": 32768,
+ "ncmoe": 9,
+ "moe_cache_mib": 0,
+ "kv": "q8_0",
+ "load_s": 140.42692685127258,
+ "base_vram_mib": 31,
+ "max_vram_mib": 46439,
+ "peak_rss_kib": 20069464,
+ "decode_tok_s": 25.30921047935193,
+ "decode_tok_s_all": [
+  25.439508541520148,
+  25.17891241718371
+ ],
+ "prefill_tok_s": 123.00658804797527,
+ "cpu_cores_avg": 9.286883474011308,
+ "disk_mib_per_request": 0.005859375,
+ "runs": [
+  {
+   "i": 0,
+   "warmup": true,
+   "concurrent": 1,
+   "wall_s": 25.963932991027832,
+   "agg_tok_s": 1.2324789164668546,
+   "cpu_s": 79.68,
+   "cpu_cores": 3.068872502002468,
+   "disk_mib": 10829.26953125,
+   "prompt_n": 747,
+   "prompt_per_s": 30.592549424167952,
+   "predicted_n": 32,
+   "predicted_per_s": 20.230629172567266,
+   "per_req_predicted_per_s": [
+    20.230629172567266
+   ]
+  },
+  {
+   "i": 1,
+   "warmup": false,
+   "concurrent": 1,
+   "wall_s": 7.289386987686157,
+   "agg_tok_s": 4.389943908048383,
+   "cpu_s": 67.67,
+   "cpu_cores": 9.283359508051065,
+   "disk_mib": 0.0078125,
+   "prompt_n": 747,
+   "prompt_per_s": 123.26372645551443,
+   "predicted_n": 32,
+   "predicted_per_s": 25.439508541520148,
+   "per_req_predicted_per_s": [
+    25.439508541520148
+   ]
+  },
+  {
+   "i": 2,
+   "warmup": false,
+   "concurrent": 1,
+   "wall_s": 7.324759483337402,
+   "agg_tok_s": 4.368744130478909,
+   "cpu_s": 68.04999999999998,
+   "cpu_cores": 9.290407439971553,
+   "disk_mib": 0.00390625,
+   "prompt_n": 747,
+   "prompt_per_s": 122.74944964043613,
+   "predicted_n": 32,
+   "predicted_per_s": 25.17891241718371,
+   "per_req_predicted_per_s": [
+    25.17891241718371
+   ]
+  }
+ ],
+ "server_log": "results/ctx32k_q8_ncmoe9.log"
+}

@@ -119,6 +119,14 @@ curl -s http://127.0.0.1:8080/completion \
 REPS=5 ./hotset bench          # more samples; results/bench-*.json
 ```
 
+### Evidence
+
+Every number on this page has a file behind it — the raw `bench_serve.py`
+output, with the exact server command, each run's `timings`, peak VRAM, peak RSS
+and disk bytes per request. [`results/README.md`](results/README.md) maps each
+claim to its file. Paths in the recorded commands were normalised to
+repo-relative; the numbers were not touched.
+
 ### Test
 
 ```bash

@@ -1,0 +1,103 @@
+{
+ "cmd": [
+  "build/bin/llama-server",
+  "-m",
+  "models/gpt-oss-120b-MXFP4.gguf",
+  "-ngl",
+  "99",
+  "-c",
+  "8192",
+  "-ctk",
+  "f16",
+  "-ctv",
+  "f16",
+  "-fa",
+  "auto",
+  "--host",
+  "127.0.0.1",
+  "--port",
+  "50701",
+  "--no-webui",
+  "--n-cpu-moe",
+  "9",
+  "-md",
+  "models/eagle3-gpt-oss-120b-Q8_0.gguf",
+  "--spec-type",
+  "draft-eagle3",
+  "--spec-draft-n-max",
+  "3",
+  "--no-op-offload",
+  "--spec-draft-ngl",
+  "99"
+ ],
+ "ctx": 8192,
+ "ncmoe": 9,
+ "moe_cache_mib": 0,
+ "kv": "f16",
+ "load_s": 158.9844264984131,
+ "base_vram_mib": 31,
+ "max_vram_mib": 47703,
+ "peak_rss_kib": 18829424,
+ "decode_tok_s": 24.45435286603997,
+ "decode_tok_s_all": [
+  24.586325320012488,
+  24.322380412067453
+ ],
+ "prefill_tok_s": 82.96494843385256,
+ "cpu_cores_avg": 8.819392871293564,
+ "disk_mib_per_request": 0.0,
+ "runs": [
+  {
+   "i": 0,
+   "warmup": true,
+   "concurrent": 1,
+   "wall_s": 23.38279914855957,
+   "agg_tok_s": 2.737054686797091,
+   "cpu_s": 46.78,
+   "cpu_cores": 2.000615910130749,
+   "disk_mib": 10183.171875,
+   "prompt_n": 152,
+   "prompt_per_s": 7.706589062666838,
+   "predicted_n": 64,
+   "predicted_per_s": 17.267971229915364,
+   "per_req_predicted_per_s": [
+    17.267971229915364
+   ]
+  },
+  {
+   "i": 1,
+   "warmup": false,
+   "concurrent": 1,
+   "wall_s": 4.392148733139038,
+   "agg_tok_s": 14.571455542276148,
+   "cpu_s": 38.730000000000004,
+   "cpu_cores": 8.818007393005551,
+   "disk_mib": 0.0,
+   "prompt_n": 152,
+   "prompt_per_s": 83.33008967304453,
+   "predicted_n": 64,
+   "predicted_per_s": 24.586325320012488,
+   "per_req_predicted_per_s": [
+    24.586325320012488
+   ]
+  },
+  {
+   "i": 2,
+   "warmup": false,
+   "concurrent": 1,
+   "wall_s": 4.436116456985474,
+   "agg_tok_s": 14.427033334352695,
+   "cpu_s": 39.129999999999995,
+   "cpu_cores": 8.820778349581577,
+   "disk_mib": 0.0,
+   "prompt_n": 152,
+   "prompt_per_s": 82.59980719466057,
+   "predicted_n": 64,
+   "predicted_per_s": 24.322380412067453,
+   "per_req_predicted_per_s": [
+    24.322380412067453
+   ]
+  }
+ ],
+ "server_log": "results/eagle3_ncmoe9.log"
+}

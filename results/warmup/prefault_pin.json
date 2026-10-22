@@ -1,0 +1,109 @@
+{
+ "name": "prefault_pin",
+ "model": "models/gpt-oss-120b-MXFP4.gguf",
+ "bin": "build/bin/llama-server",
+ "ncmoe": 8,
+ "ctx": 8192,
+ "kv": "f16",
+ "prefault": "read",
+ "hidden_warmup_tokens": 0,
+ "cpu_expert_tensors": 48,
+ "cpu_expert_ranges": 16,
+ "cpu_expert_bytes": 13571915776,
+ "drop_cache_s": 0.48407912254333496,
+ "load_s": 156.20024991035461,
+ "mem_after_load": {
+  "MemAvailable": 22209,
+  "Cached": 16346,
+  "SwapTotal": 8191,
+  "SwapFree": 0
+ },
+ "mem_after_drop_gpu_cache": {
+  "MemAvailable": 22099,
+  "Cached": 7587,
+  "SwapTotal": 8191,
+  "SwapFree": 0
+ },
+ "prefault_record": {
+  "mode": "read",
+  "bytes": 13571915776,
+  "seconds": 15.410215377807617,
+  "read_bytes": 13571915776,
+  "pin_seconds": 0.0008065700531005859,
+  "resident_bytes": 7494385664,
+  "resident_ratio": 0.5521980675162127
+ },
+ "load_total_s": 171.61046528816223,
+ "mem_after_prefault": {
+  "MemAvailable": 22418,
+  "Cached": 13325,
+  "SwapTotal": 8191,
+  "SwapFree": 0
+ },
+ "resident_before_first_request": {
+  "bytes": 7494385664,
+  "total": 13571915776,
+  "ratio": 0.5521980675162127
+ },
+ "runs": [
+  {
+   "i": 0,
+   "wall_s": 9.56,
+   "predicted_n": 48,
+   "decode_tok_s": 10.24,
+   "prefill_tok_s": 4.7,
+   "read_mib": 4974.9,
+   "rss_mib": 7450,
+   "swap_mib": 0
+  },
+  {
+   "i": 1,
+   "wall_s": 7.43,
+   "predicted_n": 48,
+   "decode_tok_s": 13.09,
+   "prefill_tok_s": 6.2,
+   "read_mib": 2622.1,
+   "rss_mib": 7550,
+   "swap_mib": 0
+  },
+  {
+   "i": 2,
+   "wall_s": 6.95,
+   "predicted_n": 48,
+   "decode_tok_s": 15.81,
+   "prefill_tok_s": 5.9,
+   "read_mib": 2367.1,
+   "rss_mib": 7527,
+   "swap_mib": 0
+  }
+ ],
+ "cmd": [
+  "build/bin/llama-server",
+  "-m",
+  "models/gpt-oss-120b-MXFP4.gguf",
+  "-ngl",
+  "99",
+  "-c",
+  "8192",
+  "-ctk",
+  "f16",
+  "-ctv",
+  "f16",
+  "-fa",
+  "auto",
+  "--host",
+  "127.0.0.1",
+  "--port",
+  "48323",
+  "--no-webui",
+  "--n-cpu-moe",
+  "8",
+  "--parallel",
+  "1",
+  "--no-op-offload",
+  "-t",
+  "10",
+  "-tb",
+  "20"
+ ]
+}

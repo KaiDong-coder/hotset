@@ -117,6 +117,13 @@ curl -s http://127.0.0.1:8080/completion \
 REPS=5 ./hotset bench          # 多采几次；结果在 results/bench-*.json
 ```
 
+### 证据
+
+这一页上的每个数字背后都有一个文件——`bench_serve.py` 的原始输出，含服务端的
+完整命令、每次运行的 `timings`、峰值显存、峰值 RSS 以及每个请求的磁盘读取量。
+每条结论对应哪个文件，见 [`results/README.md`](results/README.md)。记录里的绝对
+路径已规范成仓库相对路径；**数字没有动过**。
+
 ### 测试
 
 ```bash

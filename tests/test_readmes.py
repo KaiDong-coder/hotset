@@ -76,6 +76,26 @@ class TestDocsAgree(unittest.TestCase):
                                       f"{name}: {value} tok/s is not labelled "
                                       f"'{word}': {window.strip()[:160]!r}")
 
+    def test_links_resolve(self):
+        # A README that promises "results/README.md" and has no such file is
+        # worse than one that promises nothing: the first comment on any forum
+        # will be the dead link.
+        links = re.compile(r"\]\(([^)\s]+)\)")
+        for name in ("README.md", "README.zh-CN.md", "ROADMAP.md",
+                     "ROADMAP.zh-CN.md"):
+            path = os.path.join(ROOT, name)
+            if not os.path.exists(path):
+                continue
+            with open(path, encoding="utf-8") as f:
+                text = f.read()
+            for target in links.findall(text):
+                if target.startswith(("http://", "https://", "#", "mailto:")):
+                    continue
+                target = target.split("#")[0]
+                with self.subTest(file=name, link=target):
+                    self.assertTrue(os.path.exists(os.path.join(ROOT, target)),
+                                    f"{name}: dead link {target}")
+
     def test_language_switch(self):
         for en_name, zh_name in PAIRS:
             for name, other in ((en_name, zh_name), (zh_name, en_name)):
