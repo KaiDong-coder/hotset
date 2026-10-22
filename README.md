@@ -3,6 +3,8 @@
 [![tests](https://github.com/KaiDong-coder/hotset/actions/workflows/tests.yml/badge.svg)](https://github.com/KaiDong-coder/hotset/actions/workflows/tests.yml)
 [![license: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
+**English** | [简体中文](README.zh-CN.md)
+
 **gpt-oss-120B (117B parameters, 5.1B active) served on one 48 GB GPU and 30 GB
 of RAM — 30.6 tok/s decode, 97.8 tok/s prefill, and a measured byte model that
 tells you what the next 20 tok/s costs.**
